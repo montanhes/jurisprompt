@@ -1,0 +1,88 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jurisprompt
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: jurisprompt
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jurisprompt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grobid:
+    image: lfoppiano/grobid:0.8.0
+    restart: unless-stopped
+    # Para PDFs muito grandes aumente o heap: -Xmx6g
+    environment:
+      # -XX:-UseContainerSupport corrige NullPointerException do JDK com cgroup v2 (Linux 6.x)
+      - JAVA_OPTS=-Xms512m -Xmx4g -XX:-UseContainerSupport
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8070/api/isalive || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GROBID_URL=http://grobid:8070
+      - DATABASE_URL=postgresql://jurisprompt:secret@postgres:5432/jurisprompt
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BASE_URL=${BASE_URL:-http://localhost:3000}
+      - NODE_ENV=production
+    volumes:
+      - uploads:/app/uploads
+      - results:/app/results
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: node src/server.js
+
+  worker:
+    build: .
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - GROBID_URL=http://grobid:8070
+      - DATABASE_URL=postgresql://jurisprompt:secret@postgres:5432/jurisprompt
+      - NODE_ENV=production
+    volumes:
+      - uploads:/app/uploads
+      - results:/app/results
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: node src/worker.js
+
+volumes:
+  redis_data:
+  postgres_data:
+  uploads:
+  results:
