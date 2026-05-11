@@ -37,26 +37,64 @@
       to   { opacity: 0; transform: translateX(100%); }
     }
     .slide-out { animation: slide-out-right 0.3s ease-in forwards; }
+    .markdown-preview h1 { font-size: 1.4rem; font-weight: 700; color: #0f172a; margin: 0 0 0.75rem; line-height: 1.3; }
+    .markdown-preview h2 { font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 1.25rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid #e2e8f0; }
+    .markdown-preview h3 { font-size: 1rem; font-weight: 600; color: #334155; margin: 1rem 0 0.4rem; }
+    .markdown-preview p  { margin: 0 0 0.75rem; line-height: 1.8; }
+    .markdown-preview hr { border: none; border-top: 1px solid #e2e8f0; margin: 1.25rem 0; }
+    .markdown-preview em { color: #64748b; font-style: italic; }
+    .markdown-preview strong { font-weight: 600; }
+    .markdown-preview ul, .markdown-preview ol { padding-left: 1.5rem; margin: 0 0 0.75rem; }
+    .markdown-preview li { margin: 0.2rem 0; line-height: 1.7; }
+    .markdown-preview blockquote { border-left: 3px solid #cbd5e1; padding-left: 1rem; color: #64748b; margin: 0.75rem 0; }
+    .markdown-preview code { background: #f1f5f9; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85em; font-family: monospace; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900 antialiased">
 
   <!-- Toast container -->
   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- Login overlay -->
-  <div id="auth-overlay" class="hidden fixed inset-0 bg-slate-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 max-w-sm w-full mx-4 text-center">
-      <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
+  <!-- Login overlay / Landing page -->
+  <div id="auth-overlay" class="hidden fixed inset-0 bg-slate-50 z-50 overflow-y-auto">
+
+    <!-- Nav -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <span class="text-base font-bold text-slate-900 tracking-tight">JurisPrompt</span>
+        </div>
+        <a href="/auth/google"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-lg text-sm font-medium text-slate-700 transition-colors shadow-sm">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 flex-shrink-0">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Entrar com Google
+        </a>
       </div>
-      <h1 class="text-xl font-bold text-slate-900 mb-1">JurisPrompt</h1>
-      <p class="text-sm text-slate-400 mb-8">Extração de texto de PDFs jurídicos</p>
+    </nav>
+
+    <!-- Hero -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
+      <span class="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">Extração de texto jurídico</span>
+      <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-5">
+        PDFs jurídicos<br class="hidden sm:block" /> em texto estruturado
+      </h1>
+      <p class="text-lg text-slate-500 max-w-xl mx-auto mb-10 leading-relaxed">
+        Envie petições, acórdãos, contratos e outros documentos — o JurisPrompt extrai o conteúdo com marcadores de página e entrega um arquivo Markdown pronto para uso em prompts de IA.
+      </p>
       <a href="/auth/google"
-         class="inline-flex items-center justify-center gap-3 w-full px-5 py-3 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700 transition-colors shadow-sm">
+         class="inline-flex items-center gap-3 px-6 py-3.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700 transition-colors shadow-sm">
         <svg viewBox="0 0 24 24" class="w-5 h-5 flex-shrink-0">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -69,6 +107,47 @@
         Erro ao autenticar. Tente novamente.
       </div>
     </div>
+
+    <!-- Features -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Envio simples</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Arraste o PDF ou selecione pelo botão. Suporta documentos de até 500 páginas e 500 MB.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Markdown estruturado</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">O texto é extraído com marcadores de página, títulos e parágrafos preservados — pronto para colar num prompt.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Processamento em fila</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Envie vários documentos e acompanhe o progresso em tempo real. Baixe o resultado assim que ficar pronto.</p>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <!-- Header -->
@@ -89,7 +168,7 @@
         <span id="grobid-label" class="text-xs text-slate-400 hidden sm:inline">Verificando...</span>
         <!-- User area -->
         <div id="user-area" class="hidden items-center gap-2 pl-3 border-l border-slate-200">
-          <img id="user-avatar" src="" alt="" class="w-7 h-7 rounded-full object-cover bg-slate-100" />
+          <img id="user-avatar" src="" alt="" referrerpolicy="no-referrer" class="w-7 h-7 rounded-full object-cover bg-slate-100" />
           <span id="user-name" class="text-sm font-medium text-slate-700 hidden sm:inline max-w-[120px] truncate"></span>
           <button onclick="logout()"
             class="text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100">
@@ -104,9 +183,19 @@
 
     <!-- Upload card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-5 sm:px-6 py-4 border-b border-slate-100">
-        <h2 class="text-sm font-semibold text-slate-900">Enviar documento PDF</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Suporta documentos jurídicos de até 500 páginas · Máx. 500 MB</p>
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900">Enviar documento PDF</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Suporta documentos jurídicos de até 500 páginas · Máx. 500 MB</p>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="text-xs text-slate-400 whitespace-nowrap">Páginas (opcional)</span>
+          <input type="number" id="page-start" min="1" placeholder="De"
+            class="w-16 text-xs border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <span class="text-xs text-slate-300">–</span>
+          <input type="number" id="page-end" min="1" placeholder="Até"
+            class="w-16 text-xs border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
       </div>
 
       <div class="p-5 sm:p-6">
@@ -197,8 +286,58 @@
     </div>
   </main>
 
+  <!-- Markdown Preview Modal -->
+  <div id="preview-modal" class="hidden fixed inset-0 z-50 flex flex-col" style="background:#0f172a">
+    <div class="flex items-center justify-between px-5 py-3 flex-shrink-0" style="background:#1e293b;border-bottom:1px solid #334155">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <span id="preview-filename" class="text-sm font-medium truncate max-w-xs sm:max-w-lg" style="color:#cbd5e1"></span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+        <a id="preview-download-btn" href="#" download
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Baixar MD
+        </a>
+        <button onclick="closePreview()"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style="background:#334155;color:#cbd5e1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Fechar
+        </button>
+      </div>
+    </div>
+    <div class="flex flex-1 overflow-hidden">
+      <div class="flex flex-col w-1/2 overflow-hidden" style="border-right:1px solid #334155">
+        <div class="px-4 py-2 flex-shrink-0" style="background:#1e293b;border-bottom:1px solid #334155">
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color:#64748b">Markdown</span>
+        </div>
+        <div id="preview-left-scroll" class="flex-1 overflow-auto p-4" style="background:#0f172a">
+          <pre id="preview-source" class="text-xs font-mono whitespace-pre-wrap leading-relaxed" style="color:#94a3b8"></pre>
+        </div>
+      </div>
+      <div class="flex flex-col w-1/2 overflow-hidden bg-white">
+        <div class="px-4 py-2 flex-shrink-0 bg-white border-b border-slate-200">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Visualização</span>
+        </div>
+        <div id="preview-right-scroll" class="flex-1 overflow-auto p-6 bg-white">
+          <div id="preview-rendered" class="markdown-preview text-slate-800 text-sm leading-relaxed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center">
-    <p class="text-xs text-slate-300">JurisPrompt · Powered by Grobid · BullMQ · Fastify · Node.js</p>
+    <p class="text-xs text-slate-300">JurisPrompt · Powered by Docling · BullMQ · Fastify · Node.js</p>
   </footer>
 
   <script>
@@ -311,6 +450,10 @@
     function uploadFile(file) {
       const formData = new FormData()
       formData.append('file', file)
+      const pageStart = document.getElementById('page-start').value
+      const pageEnd   = document.getElementById('page-end').value
+      if (pageStart) formData.append('pageStart', pageStart)
+      if (pageEnd)   formData.append('pageEnd',   pageEnd)
 
       uploadFilename.textContent = file.name
       uploadProgress.classList.remove('hidden')
@@ -384,30 +527,56 @@
         </span>`,
     }
 
-    function downloadButton(job) {
+    function deleteBtn(jobId) {
+      return `
+        <button data-job-id="${escapeHtml(jobId)}"
+           onclick="deleteJob(this.dataset.jobId)"
+           title="Remover"
+           class="inline-flex items-center justify-center w-8 h-8 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </button>`
+    }
+
+    function actionButtons(job) {
       if (job.status === 'done' && job.resultFile) {
-        const name = job.originalName.replace(/\.pdf$/i, '.txt')
+        const name = job.originalName.replace(/\.pdf$/i, '.md')
         return `
-          <a href="/results/${job.resultFile}"
-             download="${escapeHtml(name)}"
-             class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors shadow-sm">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            Baixar TXT
-          </a>`
+          <div class="inline-flex items-center gap-1.5">
+            <button data-result-file="${escapeHtml(job.resultFile)}" data-name="${escapeHtml(name)}"
+               onclick="openPreview(this.dataset.resultFile, this.dataset.name)"
+               title="Preview"
+               class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+            <a href="/results/${job.resultFile}"
+               download="${escapeHtml(name)}"
+               title="Baixar MD"
+               class="inline-flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+            </a>
+            ${deleteBtn(job.id)}
+          </div>`
       }
       if (job.status === 'error') {
-        return `<span class="text-xs text-red-400 italic" title="${escapeHtml(job.error || '')}">Falha</span>`
+        return `<div class="inline-flex items-center gap-1.5">${deleteBtn(job.id)}</div>`
       }
       return `
-        <button disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-300 rounded-lg text-xs font-medium cursor-not-allowed">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button disabled title="Baixar MD" class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-300 rounded-lg cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
-          Baixar TXT
         </button>`
     }
 
@@ -472,7 +641,7 @@
             <span class="text-sm text-slate-500">${formatDate(job.completedAt)}</span>
           </td>
           <td class="px-5 sm:px-6 py-4 text-right whitespace-nowrap">
-            ${downloadButton(job)}
+            ${actionButtons(job)}
           </td>
         </tr>
       `).join('')
@@ -540,6 +709,68 @@
         grobidLabel.textContent = 'Sem conexão'
       }
     }
+
+    // ── Delete job ────────────────────────────────────────────────────────────
+    async function deleteJob(jobId) {
+      if (!confirm('Remover este arquivo permanentemente?')) return
+      try {
+        const res = await fetch(`/jobs/${jobId}`, { method: 'DELETE' })
+        if (res.status === 401) { showAuthOverlay(); return }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        fetchJobs()
+      } catch (err) {
+        showToast('Erro ao remover: ' + err.message, 'error')
+      }
+    }
+
+    // ── Markdown Preview ──────────────────────────────────────────────────────
+    async function openPreview(resultFile, filename) {
+      try {
+        const res = await fetch(`/results/${resultFile}`)
+        if (res.status === 401) { showAuthOverlay(); return }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const markdown = await res.text()
+
+        document.getElementById('preview-source').textContent = markdown
+        document.getElementById('preview-rendered').innerHTML = marked.parse(markdown)
+        document.getElementById('preview-filename').textContent = filename
+        const dlBtn = document.getElementById('preview-download-btn')
+        dlBtn.href = `/results/${resultFile}`
+        dlBtn.setAttribute('download', filename)
+
+        document.getElementById('preview-modal').classList.remove('hidden')
+        document.body.style.overflow = 'hidden'
+      } catch (err) {
+        showToast('Erro ao carregar preview: ' + err.message, 'error')
+      }
+    }
+
+    function closePreview() {
+      document.getElementById('preview-modal').classList.add('hidden')
+      document.body.style.overflow = ''
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePreview()
+    })
+
+    // ── Scroll sync ───────────────────────────────────────────────────────────
+    ;(function () {
+      const left  = document.getElementById('preview-left-scroll')
+      const right = document.getElementById('preview-right-scroll')
+      let syncing = false
+
+      function syncFrom(source, target) {
+        if (syncing) return
+        syncing = true
+        const pct = source.scrollTop / (source.scrollHeight - source.clientHeight)
+        target.scrollTop = pct * (target.scrollHeight - target.clientHeight)
+        syncing = false
+      }
+
+      left.addEventListener('scroll',  () => syncFrom(left,  right))
+      right.addEventListener('scroll', () => syncFrom(right, left))
+    })()
 
     // ── Init ──────────────────────────────────────────────────────────────────
     initAuth()

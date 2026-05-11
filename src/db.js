@@ -76,3 +76,8 @@ export async function getJobOwner(jobId) {
   const rows = await sql`SELECT user_id FROM jobs WHERE id = ${jobId}`
   return rows[0]?.user_id ?? null
 }
+
+export async function deleteJob(jobId) {
+  const rows = await sql`DELETE FROM jobs WHERE id = ${jobId} RETURNING result_file AS "resultFile"`
+  return rows[0]?.resultFile ?? null
+}

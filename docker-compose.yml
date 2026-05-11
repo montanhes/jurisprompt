@@ -25,19 +25,17 @@ services:
       timeout: 5s
       retries: 5
 
-  grobid:
-    image: lfoppiano/grobid:0.8.0
+  docling:
+    build: ./docling-svc
     restart: unless-stopped
-    # Para PDFs muito grandes aumente o heap: -Xmx6g
-    environment:
-      # -XX:-UseContainerSupport corrige NullPointerException do JDK com cgroup v2 (Linux 6.x)
-      - JAVA_OPTS=-Xms512m -Xmx4g -XX:-UseContainerSupport
+    volumes:
+      - docling_cache:/root/.cache
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8070/api/isalive || exit 1"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 90s
+      retries: 20
+      start_period: 600s
 
   app:
     build: .
@@ -46,7 +44,6 @@ services:
       - "3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
-      - GROBID_URL=http://grobid:8070
       - DATABASE_URL=postgresql://jurisprompt:secret@postgres:5432/jurisprompt
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -54,6 +51,7 @@ services:
       - BASE_URL=${BASE_URL:-http://localhost:3000}
       - NODE_ENV=production
     volumes:
+      - ./src:/app/src
       - uploads:/app/uploads
       - results:/app/results
     depends_on:
@@ -61,17 +59,18 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    command: node src/server.js
+    command: node --watch src/server.js
 
   worker:
     build: .
     restart: unless-stopped
     environment:
       - REDIS_URL=redis://redis:6379
-      - GROBID_URL=http://grobid:8070
+      - DOCLING_URL=http://docling:8000
       - DATABASE_URL=postgresql://jurisprompt:secret@postgres:5432/jurisprompt
       - NODE_ENV=production
     volumes:
+      - ./src:/app/src
       - uploads:/app/uploads
       - results:/app/results
     depends_on:
@@ -79,10 +78,13 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    command: node src/worker.js
+      docling:
+        condition: service_healthy
+    command: node --watch src/worker.js
 
 volumes:
   redis_data:
   postgres_data:
   uploads:
   results:
+  docling_cache:
