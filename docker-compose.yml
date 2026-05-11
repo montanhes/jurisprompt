@@ -28,6 +28,10 @@ services:
   docling:
     build: ./docling-svc
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 12G
     volumes:
       - docling_cache:/root/.cache
     healthcheck:
@@ -41,7 +45,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
       - DATABASE_URL=postgresql://jurisprompt:secret@postgres:5432/jurisprompt
