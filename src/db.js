@@ -1,6 +1,6 @@
 import postgres from 'postgres'
 
-const sql = postgres(process.env.DATABASE_URL || 'postgresql://jurisprompt:secret@localhost:5432/jurisprompt')
+const sql = postgres(process.env.DATABASE_URL || 'postgresql://zpply:secret@localhost:5432/zpply')
 
 export async function initDb() {
   await sql`

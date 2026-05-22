@@ -35,6 +35,19 @@ await app.register(staticPlugin, {
   prefix: '/',
 })
 
+app.get('/robots.txt', (_, reply) => {
+  reply.type('text/plain').send(
+    'User-agent: *\nAllow: /\nDisallow: /jobs\nDisallow: /upload\nDisallow: /results\nSitemap: https://zpply.com/sitemap.xml\n'
+  )
+})
+
+app.get('/sitemap.xml', (_, reply) => {
+  const BASE = process.env.BASE_URL || 'https://zpply.com'
+  reply.type('application/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${BASE}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`
+  )
+})
+
 app.post('/upload', { preHandler: [app.authenticate] }, async (req, reply) => {
   const id = uuidv4()
   const filePath = path.join(UPLOADS_DIR, `${id}.pdf`)

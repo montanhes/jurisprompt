@@ -25,7 +25,7 @@ JWT_SECRET=...          # string aleatória longa
 BASE_URL=http://localhost:3000
 ```
 
-O `docker-compose.yml` lê essas vars do ambiente/`.env` via `${VAR}`. O `DATABASE_URL` é montado internamente (`postgresql://jurisprompt:secret@postgres:5432/jurisprompt`).
+O `docker-compose.yml` lê essas vars do ambiente/`.env` via `${VAR}`. O `DATABASE_URL` é montado internamente (`postgresql://zpply:secret@postgres:5432/zpply`).
 
 No Google Cloud Console, o URI de redirecionamento autorizado deve ser `{BASE_URL}/auth/google/callback`.
 

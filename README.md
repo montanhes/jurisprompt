@@ -1,4 +1,4 @@
-# JurisPrompt
+# Zpply
 
 Extração de texto de PDFs jurídicos via Grobid, com autenticação Google e interface web.
 
@@ -61,4 +61,4 @@ docker compose up
 | `JWT_SECRET` | Secret para assinar tokens JWT |
 | `BASE_URL` | URL base da aplicação (ex: `http://localhost:3000`) |
 
-`DATABASE_URL` é montado internamente pelo Docker Compose (`postgresql://jurisprompt:secret@postgres:5432/jurisprompt`).
+`DATABASE_URL` é montado internamente pelo Docker Compose (`postgresql://zpply:secret@postgres:5432/zpply`).

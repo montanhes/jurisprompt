@@ -1,11 +1,14 @@
 {
-  "name": "jurisprompt",
+  "name": "zpply",
   "version": "1.0.0",
   "description": "Extração assíncrona de texto de PDFs jurídicos via Grobid",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "worker": "node src/worker.js"
+    "worker": "node src/worker.js",
+    "fe:dev": "cd frontend && npm run dev",
+    "fe:build": "cd frontend && npm run build",
+    "fe:install": "cd frontend && npm install"
   },
   "dependencies": {
     "@fastify/cookie": "^9.0.0",

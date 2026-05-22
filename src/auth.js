@@ -76,8 +76,13 @@ export default fp(async function authPlugin(fastify) {
     }
   })
 
-  fastify.get('/auth/me', { preHandler: [fastify.authenticate] }, async (req) => {
-    return req.user
+  fastify.get('/auth/me', async (req, reply) => {
+    try {
+      await req.jwtVerify()
+      return req.user
+    } catch {
+      return reply.send(null)
+    }
   })
 
   fastify.post('/auth/logout', async (req, reply) => {
