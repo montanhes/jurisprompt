@@ -24,7 +24,7 @@ async function ensureProducts(apiKey, log) {
   // Busca lista de produtos existentes no AbacatePay para sincronizar o DB
   let remoteProducts = []
   try {
-    const { data: res } = await axios.get(`${API_BASE}/products`, { headers })
+    const { data: res } = await axios.get(`${API_BASE}/products/list`, { headers })
     if (res.data) remoteProducts = Array.isArray(res.data) ? res.data : (res.data.items ?? [])
   } catch (err) {
     log.warn({ err: err.message }, 'AbacatePay: não foi possível listar produtos')
