@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import GoogleIcon from '../ui/GoogleIcon'
+import { SUBSCRIBE_INTENT_KEY } from '../../App'
 
 type Billing = 'mensal' | 'trimestral' | 'anual'
 
@@ -51,6 +52,11 @@ function Feature({ label, included = true }: { label: string; included?: boolean
 
 export default function PricingSection() {
   const [billing, setBilling] = useState<Billing>('mensal')
+
+  function handleSubscribe(plan: 'pro' | 'premium', billing: Billing) {
+    sessionStorage.setItem(SUBSCRIBE_INTENT_KEY, JSON.stringify({ plan, billing }))
+    window.location.href = '/auth/google'
+  }
 
   const pro     = PRICES.pro[billing]
   const premium = PRICES.premium[billing]
@@ -148,13 +154,13 @@ export default function PricingSection() {
               )}
             </div>
 
-            <a
-              href="/auth/google"
+            <button
+              onClick={() => handleSubscribe('pro', billing)}
               className="w-full inline-flex items-center justify-center gap-sm border border-primary text-primary bg-transparent px-md py-sm rounded-full text-label-md font-semibold hover:bg-surface-container-low transition-all"
             >
               <GoogleIcon className="w-4 h-4" />
               Assinar Pro
-            </a>
+            </button>
 
             <ul className="flex flex-col gap-sm">
               <Feature label="100 PDFs por mês" />
@@ -189,13 +195,13 @@ export default function PricingSection() {
               )}
             </div>
 
-            <a
-              href="/auth/google"
+            <button
+              onClick={() => handleSubscribe('premium', billing)}
               className="w-full inline-flex items-center justify-center gap-sm border border-primary text-primary bg-transparent px-md py-sm rounded-full text-label-md font-semibold hover:bg-surface-container-low transition-all"
             >
               <GoogleIcon className="w-4 h-4" />
               Assinar Premium
-            </a>
+            </button>
 
             <ul className="flex flex-col gap-sm">
               <Feature label="PDFs ilimitados (100k páginas/mês)" />

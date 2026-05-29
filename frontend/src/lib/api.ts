@@ -1,4 +1,4 @@
-import type { Job, User } from '../types'
+import type { Job, User, Plan, BillingCycle } from '../types'
 
 export async function fetchCurrentUser(): Promise<User | null> {
   const res = await fetch('/auth/me')
@@ -22,4 +22,14 @@ export async function fetchResult(filename: string): Promise<string> {
   const res = await fetch(`/results/${filename}`)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.text()
+}
+
+export async function subscribe(plan: Plan, billing: BillingCycle): Promise<{ url: string }> {
+  const res = await fetch('/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan, billing }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
 }

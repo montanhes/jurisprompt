@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchJobs, deleteJob } from '../lib/api'
 import { useToast } from './useToast'
@@ -8,11 +8,15 @@ export function useJobs() {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const prevJobsRef = useRef<Job[]>([])
+  const [connected, setConnected] = useState(false)
 
-  const query = useQuery({
-    queryKey: ['jobs'],
-    queryFn: async () => {
-      const jobs = await fetchJobs()
+  useEffect(() => {
+    const es = new EventSource('/jobs/stream')
+
+    es.onopen = () => setConnected(true)
+
+    es.onmessage = (e) => {
+      const jobs: Job[] = JSON.parse(e.data)
       const prev = prevJobsRef.current
       if (prev.length > 0) {
         jobs.forEach(job => {
@@ -25,9 +29,21 @@ export function useJobs() {
         })
       }
       prevJobsRef.current = jobs
-      return jobs
-    },
-    refetchInterval: 3000,
+      queryClient.setQueryData(['jobs'], jobs)
+    }
+
+    es.onerror = () => setConnected(false)
+
+    return () => {
+      es.close()
+      setConnected(false)
+    }
+  }, [queryClient, showToast])
+
+  const query = useQuery({
+    queryKey: ['jobs'],
+    queryFn: fetchJobs,
+    staleTime: Infinity,
   })
 
   async function removeJob(id: string) {
@@ -40,5 +56,5 @@ export function useJobs() {
     }
   }
 
-  return { ...query, removeJob }
+  return { ...query, removeJob, connected }
 }

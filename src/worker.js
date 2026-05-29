@@ -18,12 +18,17 @@ const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379'
   enableReadyCheck: false,
 })
 
+const redisPub = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379')
+
 
 async function processJob(job) {
-  const { id, filePath, originalName, pageStart, pageEnd } = job.data
+  const { id, userId, filePath, originalName, pageStart, pageEnd } = job.data
+
+  const notify = () => userId && redisPub.publish(`jobs:${userId}`, '1').catch(() => {})
 
   console.log(`[worker] Iniciando job ${id} — ${originalName}`)
   await updateJob(id, { status: 'processing' })
+  notify()
 
   const form = new FormData()
   form.append('file', createReadStream(filePath), { filename: originalName })
@@ -57,6 +62,7 @@ async function processJob(job) {
     completedAt: new Date().toISOString(),
     error: null,
   })
+  notify()
 
   console.log(`[worker] Job ${id} concluído.`)
 }
@@ -71,6 +77,7 @@ worker.on('failed', async (job, err) => {
       error: err.message,
       completedAt: new Date().toISOString(),
     })
+    if (job.data.userId) redisPub.publish(`jobs:${job.data.userId}`, '1').catch(() => {})
   }
 })
 

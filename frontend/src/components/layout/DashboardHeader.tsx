@@ -6,6 +6,12 @@ interface Props {
   serviceOnline: boolean
 }
 
+const PLAN_BADGE: Record<string, { label: string; className: string }> = {
+  free:    { label: 'Free',    className: 'bg-surface-container text-outline border border-outline-variant' },
+  pro:     { label: 'Pro',     className: 'bg-primary/10 text-primary border border-primary/30' },
+  premium: { label: 'Premium', className: 'bg-secondary/10 text-secondary border border-secondary/30' },
+}
+
 export default function DashboardHeader({ user, serviceOnline }: Props) {
   const queryClient = useQueryClient()
 
@@ -13,6 +19,8 @@ export default function DashboardHeader({ user, serviceOnline }: Props) {
     await fetch('/auth/logout', { method: 'POST' })
     queryClient.setQueryData(['auth'], null)
   }
+
+  const badge = PLAN_BADGE[user.plan] ?? PLAN_BADGE.free
 
   return (
     <header className="bg-surface border-b border-outline-variant sticky top-0 z-40">
@@ -37,6 +45,10 @@ export default function DashboardHeader({ user, serviceOnline }: Props) {
           </span>
 
           <div className="flex items-center gap-sm pl-base border-l border-outline-variant">
+            <span className={`text-label-sm font-semibold px-sm py-0.5 rounded-full ${badge.className}`}>
+              {badge.label}
+            </span>
+
             {user.picture && (
               <img
                 src={user.picture}

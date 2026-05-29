@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useJobs } from '../../hooks/useJobs'
 import { fetchResult } from '../../lib/api'
 import { useToast } from '../../hooks/useToast'
 import StatusBadge from '../ui/StatusBadge'
@@ -21,8 +20,14 @@ interface PreviewState {
   resultFile: string
 }
 
-export default function JobsCard() {
-  const { data: jobs = [], isFetching, removeJob } = useJobs()
+interface Props {
+  jobs: Job[]
+  isFetching: boolean
+  connected: boolean
+  removeJob: (id: string) => Promise<void>
+}
+
+export default function JobsCard({ jobs, isFetching, connected, removeJob }: Props) {
   const { showToast } = useToast()
   const [preview, setPreview] = useState<PreviewState | null>(null)
 
@@ -43,10 +48,10 @@ export default function JobsCard() {
         <div className="px-md py-base border-b border-outline-variant flex items-center justify-between gap-base">
           <div>
             <h2 className="text-label-md font-semibold text-on-surface">Fila de Processamento</h2>
-            <p className="text-label-sm text-outline mt-0.5">Atualizado a cada 3 segundos</p>
+            <p className="text-label-sm text-outline mt-0.5">Tempo real</p>
           </div>
           <div className="flex items-center gap-sm flex-shrink-0">
-            <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${isFetching ? 'bg-primary' : 'bg-outline-variant'}`} />
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${connected ? 'bg-green-400' : isFetching ? 'bg-primary animate-pulse' : 'bg-outline-variant'}`} />
             <span className="bg-surface-container text-on-surface-variant text-label-sm font-semibold px-sm py-xs rounded-full">
               {jobs.length}
             </span>

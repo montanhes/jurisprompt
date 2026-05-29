@@ -3,7 +3,7 @@ import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
 import oauth2 from '@fastify/oauth2'
 import axios from 'axios'
-import { upsertUser } from './db.js'
+import { upsertUser, getUserById } from './db.js'
 
 const GOOGLE_AUTH = {
   authorizeHost: 'https://accounts.google.com',
@@ -79,7 +79,18 @@ export default fp(async function authPlugin(fastify) {
   fastify.get('/auth/me', async (req, reply) => {
     try {
       await req.jwtVerify()
-      return req.user
+      const user = await getUserById(req.user.sub)
+      if (!user) return reply.send(null)
+      return {
+        id:                user.id,
+        email:             user.email,
+        name:              user.name,
+        picture:           user.picture,
+        plan:              user.plan,
+        plan_billing:      user.plan_billing,
+        plan_status:       user.plan_status,
+        monthly_pdf_count: user.monthly_pdf_count,
+      }
     } catch {
       return reply.send(null)
     }

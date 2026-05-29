@@ -21,9 +21,15 @@ Crie um arquivo `.env` na raiz antes de subir:
 ```env
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
-JWT_SECRET=...          # string aleatória longa
+JWT_SECRET=...                   # string aleatória longa
 BASE_URL=http://localhost:3000
+
+# AbacatePay (opcional em dev — pagamentos desativados se ausente)
+ABACATEPAY_API_KEY=...           # chave dev ou prod do painel AbacatePay
+ABACATEPAY_WEBHOOK_SECRET=...    # secret configurado no painel de webhooks
 ```
+
+No painel AbacatePay, configure o webhook para `{BASE_URL}/webhooks/abacatepay?webhookSecret=...` e habilite os eventos `subscription.completed`, `subscription.renewed` e `subscription.cancelled`.
 
 O `docker-compose.yml` lê essas vars do ambiente/`.env` via `${VAR}`. O `DATABASE_URL` é montado internamente (`postgresql://zpply:secret@postgres:5432/zpply`).
 
