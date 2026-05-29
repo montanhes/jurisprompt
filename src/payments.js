@@ -49,7 +49,7 @@ async function ensureProducts(apiKey, log) {
         log.info(`AbacatePay: produto criado ${product.externalId} → ${res.data.id}`)
       }
     } catch (err) {
-      log.error({ err: err.message, product: product.externalId }, 'AbacatePay: erro ao criar produto')
+      log.error({ err: err.message, body: err.response?.data, product: product.externalId }, 'AbacatePay: erro ao criar produto')
     }
   }
 }
