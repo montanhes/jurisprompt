@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { marked } from 'marked'
 
 interface Props {
@@ -44,8 +45,9 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
 
   const rendered = marked.parse(markdown) as string
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
+  return createPortal(
+    <div className="fixed inset-0 z-50" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+    <div className="absolute inset-[50px] flex flex-col max-w-5xl mx-auto rounded-lg overflow-hidden shadow-2xl" style={{ background: '#0f172a' }} onClick={e => e.stopPropagation()}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-md py-base flex-shrink-0"
@@ -112,7 +114,7 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
 
       {/* Rendered only */}
       <div className="flex-1 overflow-auto p-lg bg-surface-container-lowest">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div
             className="markdown-preview text-on-surface text-body-md leading-relaxed"
             dangerouslySetInnerHTML={{ __html: rendered }}
@@ -120,5 +122,7 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
         </div>
       </div>
     </div>
+    </div>,
+    document.body
   )
 }
