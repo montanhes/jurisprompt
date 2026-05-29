@@ -21,10 +21,21 @@ const ABACATE_PRODUCTS = [
 async function ensureProducts(apiKey, log) {
   const headers = { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
 
+  // Busca lista de produtos existentes no AbacatePay para sincronizar o DB
+  let remoteProducts = []
+  try {
+    const { data: res } = await axios.get(`${API_BASE}/products`, { headers })
+    if (res.data) remoteProducts = Array.isArray(res.data) ? res.data : (res.data.items ?? [])
+  } catch (err) {
+    log.warn({ err: err.message }, 'AbacatePay: não foi possível listar produtos')
+  }
+
   for (const product of ABACATE_PRODUCTS) {
     const existing = await getProductId(product.plan, product.billing)
     if (existing) continue
 
+    // Tenta criar; se já existe, busca da lista remota
+    let productId = null
     try {
       const { data: res } = await axios.post(
         `${API_BASE}/products/create`,
@@ -38,18 +49,25 @@ async function ensureProducts(apiKey, log) {
         },
         { headers },
       )
-
-      if (res.success) {
-        await upsertAbacateProduct({
-          id:         res.data.id,
-          externalId: product.externalId,
-          plan:       product.plan,
-          billing:    product.billing,
-        })
-        log.info(`AbacatePay: produto criado ${product.externalId} → ${res.data.id}`)
-      }
+      if (res.success) productId = res.data.id
     } catch (err) {
-      log.error({ err: err.message, body: err.response?.data, product: product.externalId }, 'AbacatePay: erro ao criar produto')
+      if (err.response?.data?.error?.includes('already exists')) {
+        const found = remoteProducts.find(p => p.externalId === product.externalId)
+        if (found) productId = found.id
+        else log.warn({ product: product.externalId }, 'AbacatePay: produto existe mas não encontrado na lista')
+      } else {
+        log.error({ err: err.message, product: product.externalId }, 'AbacatePay: erro ao criar produto')
+      }
+    }
+
+    if (productId) {
+      await upsertAbacateProduct({
+        id:         productId,
+        externalId: product.externalId,
+        plan:       product.plan,
+        billing:    product.billing,
+      })
+      log.info(`AbacatePay: produto sincronizado ${product.externalId} → ${productId}`)
     }
   }
 }
