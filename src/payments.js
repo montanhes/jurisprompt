@@ -134,6 +134,7 @@ export default fp(async function paymentsPlugin(fastify) {
         { headers },
       )
       subRes = data
+      fastify.log.info({ url: data.data?.url, completionUrl: `${baseUrl}/subscribe/success` }, 'AbacatePay: checkout criado')
     } catch (err) {
       fastify.log.error({ body: err.response?.data, status: err.response?.status }, 'AbacatePay: erro ao criar subscription')
       throw err
