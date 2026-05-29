@@ -43,6 +43,16 @@ services:
       retries: 20
       start_period: 600s
 
+  pymupdf:
+    build: ./pymupdf-svc
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   app:
     build: .
     restart: unless-stopped
@@ -75,6 +85,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - DOCLING_URL=http://docling:8000
+      - PYMUPDF_URL=http://pymupdf:8000
       - DATABASE_URL=postgresql://zpply:secret@postgres:5432/zpply
       - NODE_ENV=production
     volumes:
@@ -88,6 +99,8 @@ services:
         condition: service_healthy
       docling:
         condition: service_healthy
+      pymupdf:
+        condition: service_healthy
     command: node --watch src/worker.js
 
 volumes:
@@ -96,3 +109,4 @@ volumes:
   uploads:
   results:
   docling_cache:
+  pymupdf_cache:

@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useToast } from './useToast'
+import type { Converter } from '../types'
 
 interface UploadState {
   uploading: boolean
@@ -12,9 +13,8 @@ export function useUpload() {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
   const [state, setState] = useState<UploadState>({ uploading: false, filename: '', percent: 0 })
-  const xhrRef = useRef<XMLHttpRequest | null>(null)
 
-  function upload(file: File, pageStart?: number, pageEnd?: number) {
+  function upload(file: File, converter: Converter, pageStart?: number, pageEnd?: number) {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       showToast('Apenas arquivos .pdf são aceitos.', 'error')
       return
@@ -26,13 +26,13 @@ export function useUpload() {
 
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('converter', converter)
     if (pageStart) formData.append('pageStart', String(pageStart))
     if (pageEnd) formData.append('pageEnd', String(pageEnd))
 
     setState({ uploading: true, filename: file.name, percent: 0 })
 
     const xhr = new XMLHttpRequest()
-    xhrRef.current = xhr
     xhr.open('POST', '/upload')
 
     xhr.upload.addEventListener('progress', (e) => {

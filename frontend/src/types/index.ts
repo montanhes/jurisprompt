@@ -14,6 +14,7 @@ export interface User {
 }
 
 export type JobStatus = 'pending' | 'processing' | 'done' | 'error'
+export type Converter = 'docling' | 'pymupdf'
 
 export interface Job {
   id: string
@@ -21,6 +22,7 @@ export interface Job {
   status: JobStatus
   resultFile?: string
   error?: string
+  converter: Converter
   createdAt: string
   completedAt?: string
 }

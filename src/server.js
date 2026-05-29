@@ -112,6 +112,7 @@ app.post('/upload', { preHandler: [app.authenticate] }, async (req, reply) => {
   let originalName = null
   let pageStart    = null
   let pageEnd      = null
+  let converter    = null
 
   try {
     for await (const part of req.parts()) {
@@ -123,8 +124,9 @@ app.post('/upload', { preHandler: [app.authenticate] }, async (req, reply) => {
         originalName = part.filename
         await pipeline(part.file, createWriteStream(filePath))
       } else {
-        if (part.fieldname === 'pageStart') pageStart = parseInt(part.value) || null
-        if (part.fieldname === 'pageEnd')   pageEnd   = parseInt(part.value) || null
+        if (part.fieldname === 'pageStart')  pageStart  = parseInt(part.value) || null
+        if (part.fieldname === 'pageEnd')    pageEnd    = parseInt(part.value) || null
+        if (part.fieldname === 'converter')  converter  = part.value
       }
     }
   } catch (err) {
@@ -133,6 +135,11 @@ app.post('/upload', { preHandler: [app.authenticate] }, async (req, reply) => {
   }
 
   if (!originalName) return reply.status(400).send({ error: 'Nenhum arquivo enviado.' })
+
+  if (!converter || !['docling', 'pymupdf'].includes(converter)) {
+    unlink(filePath, () => {})
+    return reply.status(400).send({ error: 'Selecione o motor de conversão: docling ou pymupdf.' })
+  }
 
   // Verifica tamanho do arquivo contra limite do plano
   const { size } = await stat(filePath)
@@ -144,8 +151,8 @@ app.post('/upload', { preHandler: [app.authenticate] }, async (req, reply) => {
     })
   }
 
-  await addJob({ id, userId: req.user.sub, originalName })
-  await pdfQueue.add('process-pdf', { id, userId: req.user.sub, filePath, originalName, pageStart, pageEnd }, {
+  await addJob({ id, userId: req.user.sub, originalName, converter })
+  await pdfQueue.add('process-pdf', { id, userId: req.user.sub, filePath, originalName, pageStart, pageEnd, converter }, {
     attempts: 3,
     backoff: { type: 'exponential', delay: 10000 },
   })

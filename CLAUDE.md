@@ -12,6 +12,62 @@ docker compose up --build
 docker compose up
 ```
 
+### Build do frontend (React)
+
+Sempre rodar **localmente** antes de subir para produção. O Vite builda direto em `src/public/`, que é copiado na imagem Docker.
+
+```bash
+# Instalar deps (primeira vez ou após mudança no package.json)
+npm run fe:install
+
+# Build de produção → gera src/public/
+npm run fe:build
+
+# Dev server com hot reload (proxy para localhost:3000)
+npm run fe:dev
+```
+
+### Deploy em produção
+
+**NUNCA** usar `docker compose down -v` — destrói os volumes (banco incluído).
+
+```bash
+# 1. Build frontend local
+npm run fe:build
+
+# 2. Rebuild e reiniciar apenas app e worker (preserva postgres/redis/docling intactos)
+docker compose up -d --build --no-deps app worker
+
+# Verificar logs após deploy
+docker compose logs -f app worker
+```
+
+### Atualizar código sem rebuild de imagem
+
+Se só mudou código em `src/` (sem alterar `package.json` ou `Dockerfile`), basta reiniciar:
+
+```bash
+# Reiniciar app e worker (src/ é bind-mounted)
+docker compose restart app worker
+
+# Ver logs em tempo real
+docker compose logs -f app worker
+```
+
+### Testar funcionalidade nova
+
+```bash
+# Verificar status de todos os serviços
+docker compose ps
+
+# Logs de um serviço específico
+docker compose logs -f app
+docker compose logs -f worker
+
+# Inspecionar banco (sem derrubar nada)
+docker compose exec postgres psql -U zpply -d zpply
+```
+
 Não há testes nem linter configurados.
 
 ## Variáveis de ambiente obrigatórias

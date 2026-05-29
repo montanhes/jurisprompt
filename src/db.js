@@ -58,6 +58,9 @@ export async function initDb() {
     END $$
   `
   await sql`CREATE INDEX IF NOT EXISTS jobs_user_id_idx ON jobs(user_id)`
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS converter      TEXT NOT NULL DEFAULT 'docling'`
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS chunks_total   INT  NOT NULL DEFAULT 0`
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS chunks_done    INT  NOT NULL DEFAULT 0`
 
   // Cache de produtos AbacatePay
   await sql`
@@ -179,10 +182,10 @@ export async function upsertAbacateProduct({ id, externalId, plan, billing }) {
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
 
-export async function addJob({ id, userId, originalName }) {
+export async function addJob({ id, userId, originalName, converter }) {
   await sql`
-    INSERT INTO jobs (id, user_id, original_name, status)
-    VALUES (${id}, ${userId}, ${originalName}, 'pending')
+    INSERT INTO jobs (id, user_id, original_name, status, converter)
+    VALUES (${id}, ${userId}, ${originalName}, 'pending', ${converter})
   `
 }
 
@@ -194,6 +197,7 @@ export async function loadJobs(userId) {
       status,
       result_file   AS "resultFile",
       error,
+      converter,
       created_at    AS "createdAt",
       completed_at  AS "completedAt"
     FROM jobs
@@ -202,12 +206,14 @@ export async function loadJobs(userId) {
   `
 }
 
-export async function updateJob(id, { status, resultFile, error, completedAt } = {}) {
+export async function updateJob(id, { status, resultFile, error, completedAt, chunksTotal, chunksDone } = {}) {
   const updates = {}
-  if (status      !== undefined) updates.status       = status
-  if (resultFile  !== undefined) updates.result_file  = resultFile
-  if (error       !== undefined) updates.error        = error
-  if (completedAt !== undefined) updates.completed_at = completedAt
+  if (status      !== undefined) updates.status        = status
+  if (resultFile  !== undefined) updates.result_file   = resultFile
+  if (error       !== undefined) updates.error         = error
+  if (completedAt !== undefined) updates.completed_at  = completedAt
+  if (chunksTotal !== undefined) updates.chunks_total  = chunksTotal
+  if (chunksDone  !== undefined) updates.chunks_done   = chunksDone
 
   if (!Object.keys(updates).length) return
   await sql`UPDATE jobs SET ${sql(updates)} WHERE id = ${id}`

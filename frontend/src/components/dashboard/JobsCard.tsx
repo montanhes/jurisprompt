@@ -42,6 +42,17 @@ export default function JobsCard({ jobs, isFetching, connected, removeJob }: Pro
     }
   }
 
+  async function copyMarkdown(job: Job) {
+    if (!job.resultFile) return
+    try {
+      const markdown = await fetchResult(job.resultFile)
+      await navigator.clipboard.writeText(markdown)
+      showToast('Markdown copiado!', 'success')
+    } catch {
+      showToast('Erro ao copiar markdown.', 'error')
+    }
+  }
+
   return (
     <>
       <div className="bg-surface rounded-lg border border-outline-variant shadow-sm overflow-hidden">
@@ -116,7 +127,7 @@ export default function JobsCard({ jobs, isFetching, connected, removeJob }: Pro
 
                     {/* Ações */}
                     <td className="px-md py-base text-right whitespace-nowrap">
-                      <ActionButtons job={job} onPreview={() => openPreview(job)} onDelete={() => removeJob(job.id)} />
+                      <ActionButtons job={job} onPreview={() => openPreview(job)} onCopy={() => copyMarkdown(job)} onDelete={() => removeJob(job.id)} />
                     </td>
                   </tr>
                 ))}
@@ -153,14 +164,14 @@ function DeleteBtn({ onClick }: { onClick: () => void }) {
   )
 }
 
-function ActionButtons({ job, onPreview, onDelete }: { job: Job; onPreview: () => void; onDelete: () => void }) {
+function ActionButtons({ job, onPreview, onCopy, onDelete }: { job: Job; onPreview: () => void; onCopy: () => void; onDelete: () => void }) {
   if (job.status === 'done' && job.resultFile) {
     const mdName = job.originalName.replace(/\.pdf$/i, '.md')
     return (
       <div className="inline-flex items-center gap-1.5">
         <button
           onClick={onPreview}
-          title="Preview"
+          title="Visualizar"
           className="inline-flex items-center justify-center w-8 h-8 bg-surface-container hover:bg-surface-container-high text-on-surface-variant rounded transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,6 +179,16 @@ function ActionButtons({ job, onPreview, onDelete }: { job: Job; onPreview: () =
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+        <button
+          onClick={onCopy}
+          title="Copiar Markdown"
+          className="inline-flex items-center justify-center w-8 h-8 bg-surface-container hover:bg-surface-container-high text-on-surface-variant rounded transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
         </button>
         <a

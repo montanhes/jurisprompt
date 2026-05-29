@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { marked } from 'marked'
 
 interface Props {
@@ -9,9 +9,7 @@ interface Props {
 }
 
 export default function MarkdownPreviewModal({ markdown, filename, resultFile, onClose }: Props) {
-  const leftRef = useRef<HTMLDivElement>(null)
-  const rightRef = useRef<HTMLDivElement>(null)
-  const syncing = useRef(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -26,36 +24,28 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  useEffect(() => {
-    const left = leftRef.current
-    const right = rightRef.current
-    if (!left || !right) return
-
-    function syncFrom(source: HTMLDivElement, target: HTMLDivElement) {
-      if (syncing.current) return
-      syncing.current = true
-      const pct = source.scrollTop / (source.scrollHeight - source.clientHeight)
-      target.scrollTop = pct * (target.scrollHeight - target.clientHeight)
-      syncing.current = false
+  async function copyMarkdown() {
+    try {
+      await navigator.clipboard.writeText(markdown)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback para browsers sem clipboard API
+      const ta = document.createElement('textarea')
+      ta.value = markdown
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
-
-    const onLeftScroll = () => syncFrom(left, right)
-    const onRightScroll = () => syncFrom(right, left)
-    left.addEventListener('scroll', onLeftScroll)
-    right.addEventListener('scroll', onRightScroll)
-    return () => {
-      left.removeEventListener('scroll', onLeftScroll)
-      right.removeEventListener('scroll', onRightScroll)
-    }
-  }, [])
+  }
 
   const rendered = marked.parse(markdown) as string
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: '#0f172a' }}
-    >
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-md py-base flex-shrink-0"
@@ -74,6 +64,28 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
         </div>
 
         <div className="flex items-center gap-sm flex-shrink-0 ml-md">
+          <button
+            onClick={copyMarkdown}
+            className="inline-flex items-center gap-1.5 px-base py-xs rounded text-label-sm font-medium transition-colors"
+            style={{ background: copied ? '#166534' : '#334155', color: copied ? '#bbf7d0' : '#cbd5e1' }}
+          >
+            {copied ? (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Copiado!
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copiar
+              </>
+            )}
+          </button>
           <a
             href={`/results/${resultFile}`}
             download={filename}
@@ -98,31 +110,13 @@ export default function MarkdownPreviewModal({ markdown, filename, resultFile, o
         </div>
       </div>
 
-      {/* Split view */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Source */}
-        <div className="flex flex-col w-1/2 overflow-hidden" style={{ borderRight: '1px solid #334155' }}>
-          <div className="px-md py-xs flex-shrink-0" style={{ background: '#1e293b', borderBottom: '1px solid #334155' }}>
-            <span className="text-label-sm uppercase tracking-wider" style={{ color: '#64748b' }}>Markdown</span>
-          </div>
-          <div ref={leftRef} className="flex-1 overflow-auto p-md" style={{ background: '#0f172a' }}>
-            <pre className="text-label-sm font-mono whitespace-pre-wrap leading-relaxed" style={{ color: '#94a3b8' }}>
-              {markdown}
-            </pre>
-          </div>
-        </div>
-
-        {/* Rendered */}
-        <div className="flex flex-col w-1/2 overflow-hidden bg-surface-container-lowest">
-          <div className="px-md py-xs flex-shrink-0 bg-surface-container-lowest border-b border-outline-variant">
-            <span className="text-label-sm text-outline uppercase tracking-wider">Visualização</span>
-          </div>
-          <div ref={rightRef} className="flex-1 overflow-auto p-lg bg-surface-container-lowest">
-            <div
-              className="markdown-preview text-on-surface text-body-md leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: rendered }}
-            />
-          </div>
+      {/* Rendered only */}
+      <div className="flex-1 overflow-auto p-lg bg-surface-container-lowest">
+        <div className="max-w-4xl mx-auto">
+          <div
+            className="markdown-preview text-on-surface text-body-md leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: rendered }}
+          />
         </div>
       </div>
     </div>
