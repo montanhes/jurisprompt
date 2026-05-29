@@ -129,7 +129,7 @@ export default fp(async function paymentsPlugin(fastify) {
           customerId,
           externalId:    user.id,
           completionUrl: `${baseUrl}/subscribe/success`,
-          methods:       ['PIX', 'CARD'],
+          methods:       ['CARD'],
         },
         { headers },
       )
