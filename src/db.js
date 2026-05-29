@@ -162,6 +162,11 @@ export async function getProductByExternalId(externalId) {
   return row ?? null
 }
 
+export async function getProductById(id) {
+  const [row] = await sql`SELECT * FROM abacatepay_products WHERE id = ${id}`
+  return row ?? null
+}
+
 export async function upsertAbacateProduct({ id, externalId, plan, billing }) {
   await sql`
     INSERT INTO abacatepay_products (id, external_id, plan, billing)

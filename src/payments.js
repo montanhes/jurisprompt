@@ -2,7 +2,7 @@ import fp from 'fastify-plugin'
 import axios from 'axios'
 import crypto from 'crypto'
 import {
-  getProductId, upsertAbacateProduct, getProductByExternalId,
+  getProductId, upsertAbacateProduct, getProductByExternalId, getProductById,
   getUserById, setAbacateCustomer,
   activateSubscription, renewSubscription, cancelSubscription,
 } from './db.js'
@@ -155,6 +155,25 @@ export default fp(async function paymentsPlugin(fastify) {
 
     try {
       switch (event) {
+        case 'checkout.completed': {
+          const checkout = data?.checkout
+          const userId   = checkout?.externalId
+          const productId = checkout?.items?.[0]?.id
+          if (!userId || !productId) break
+
+          const product = await getProductById(productId)
+          if (!product) break
+
+          await activateSubscription(userId, {
+            subscriptionId: checkout.id,
+            plan:           product.plan,
+            planBilling:    product.billing,
+            renewsAt:       checkout.nextChargeAt ?? null,
+          })
+          fastify.log.info({ userId, plan: product.plan }, 'Assinatura ativada via checkout.completed')
+          break
+        }
+
         case 'subscription.completed': {
           const sub    = data?.subscription
           const userId = sub?.externalId
